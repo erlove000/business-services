@@ -149,7 +149,7 @@ public class BillDetail {
 			  
 			  billAccountDetails = new ArrayList<>(); return
 			  billAccountDetails.add(billAccountDetail); }
-		else if(billAccountDetail.getAmount().compareTo(BigDecimal.ZERO)!=0 && billAccountDetail.getAdjustedAmount().compareTo(BigDecimal.ZERO)!=0){
+		else if(billAccountDetail.getAmount().compareTo(BigDecimal.ZERO)!=0 || billAccountDetail.getAdjustedAmount().compareTo(BigDecimal.ZERO)!=0){
 			return billAccountDetails.add(billAccountDetail);
 		}else {
 			return false;
