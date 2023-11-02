@@ -182,41 +182,40 @@ public class DemandRepository {
 				AuditDetails auditDetail = demand.getAuditDetails();
 				String payerUuid = null != demand.getPayer() ? demand.getPayer().getUuid() : null;
 				ps.setString(1, demand.getId());
-				log.debug("log 1 "+demand.getId());
+				log.debug("log1 : " +demand.getId());
 				ps.setString(2, demand.getConsumerCode());
-				log.debug("log 2 "+demand.getId());
+				log.debug("log1 : " +demand.getConsumerCode());
 				ps.setString(3, demand.getConsumerType());
-				log.debug("log 3 "+demand.getId());
+				log.debug("log1 : " +demand.getConsumerType());
 				ps.setString(4, demand.getBusinessService());
-				log.debug("log 4 "+demand.getId());
+				log.debug("log1 : " +demand.getBusinessService());
 				ps.setString(5, payerUuid);
-				log.debug("log 5 "+demand.getId());
+				log.debug("log1 : " +payerUuid);
 				ps.setLong(6, demand.getTaxPeriodFrom());
-				log.debug("log 6 "+demand.getId());
+				log.debug("log1 : " +demand.getTaxPeriodFrom());
 				ps.setLong(7, demand.getTaxPeriodTo());
-				log.debug("log 7 "+demand.getId());
+				log.debug("log1 : " +demand.getTaxPeriodTo());
 				ps.setBigDecimal(8, demand.getMinimumAmountPayable());
-				log.debug("log 8 "+demand.getId());
+				log.debug("log1 : " +demand.getMinimumAmountPayable());
 				ps.setString(9, auditDetail.getCreatedBy());
-				log.debug("log 9 "+demand.getId());
+				log.debug("log1 : " +auditDetail.getCreatedBy());
 				ps.setString(10, auditDetail.getLastModifiedBy());
-				log.debug("log 10 "+demand.getId());
+				log.debug("log1 : " +auditDetail.getLastModifiedBy());
 				ps.setLong(11, auditDetail.getCreatedTime());
-				log.debug("log 11 "+demand.getId());
+				log.debug("log1 : " +auditDetail.getCreatedTime());
 				ps.setLong(12, auditDetail.getLastModifiedTime());
-				log.debug("log 12 "+demand.getId());
+				log.debug("log1 : " +auditDetail.getLastModifiedTime());
 				ps.setString(13, demand.getTenantId());
-				log.debug("log 13 "+demand.getId());
+				log.debug("log1 : " +demand.getTenantId());
 				ps.setString(14, status);
-				log.debug("log 14 "+demand.getId());
+				log.debug("log1 : " +status);
 				ps.setObject(15, util.getPGObject(demand.getAdditionalDetails()));
-				log.debug("log 15 "+demand.getId());
+				log.debug("log1 : " +util.getPGObject(demand.getAdditionalDetails()));
 				ps.setObject(16, demand.getBillExpiryTime());
-				log.debug("log 16 "+demand.getId());
+				log.debug("log1 : " +demand.getBillExpiryTime());
 				ps.setObject(17, null);
-				log.debug("log 17 "+demand.getId());
 				ps.setObject(18, demand.getIsPaymentCompleted());
-				log.debug("log 18 "+demand.getId());
+				log.debug("log1 : " +demand.getIsPaymentCompleted());
 			}
 
 			@Override
@@ -232,27 +231,16 @@ public class DemandRepository {
 				DemandDetail demandDetail = newDemandDetails.get(rowNum);
 				AuditDetails auditDetail = demandDetail.getAuditDetails();
 				ps.setString(1, demandDetail.getId());
-				log.debug("log 1 "+demand.getId());
 				ps.setString(2, demandDetail.getDemandId());
-				log.debug("log 2 "+demand.getId());
 				ps.setString(3, demandDetail.getTaxHeadMasterCode());
-				log.debug("log 3 "+demand.getId());
 				ps.setBigDecimal(4, demandDetail.getTaxAmount());
-				log.debug("log 4 "+demand.getId());
 				ps.setBigDecimal(5, demandDetail.getCollectionAmount());
-				log.debug("log 5 "+demand.getId());
 				ps.setString(6, auditDetail.getCreatedBy());
-				log.debug("log 6 "+demand.getId());
 				ps.setString(7, auditDetail.getLastModifiedBy());
-				log.debug("log 7 "+demand.getId());
 				ps.setLong(8, auditDetail.getCreatedTime());
-				log.debug("log 8 "+demand.getId());
 				ps.setLong(9, auditDetail.getLastModifiedTime());
-				log.debug("log 9 "+demand.getId());
 				ps.setString(10, demandDetail.getTenantId());
-				log.debug("log 10 "+demand.getId());
 				ps.setObject(11, util.getPGObject(demandDetail.getAdditionalDetails()));
-				log.debug("log 11 "+demand.getId());
 			}
 
 			@Override
