@@ -184,38 +184,38 @@ public class DemandRepository {
 				ps.setString(1, demand.getId());
 				log.debug("log1 : " +demand.getId());
 				ps.setString(2, demand.getConsumerCode());
-				log.debug("log1 : " +demand.getConsumerCode());
+				log.debug("log2 : " +demand.getConsumerCode());
 				ps.setString(3, demand.getConsumerType());
-				log.debug("log1 : " +demand.getConsumerType());
+				log.debug("log3 : " +demand.getConsumerType());
 				ps.setString(4, demand.getBusinessService());
-				log.debug("log1 : " +demand.getBusinessService());
+				log.debug("log4 : " +demand.getBusinessService());
 				ps.setString(5, payerUuid);
-				log.debug("log1 : " +payerUuid);
+				log.debug("log5 : " +payerUuid);
 				ps.setLong(6, demand.getTaxPeriodFrom());
-				log.debug("log1 : " +demand.getTaxPeriodFrom());
+				log.debug("log6 : " +demand.getTaxPeriodFrom());
 				ps.setLong(7, demand.getTaxPeriodTo());
-				log.debug("log1 : " +demand.getTaxPeriodTo());
+				log.debug("log7 : " +demand.getTaxPeriodTo());
 				ps.setBigDecimal(8, demand.getMinimumAmountPayable());
-				log.debug("log1 : " +demand.getMinimumAmountPayable());
+				log.debug("log8 : " +demand.getMinimumAmountPayable());
 				ps.setString(9, auditDetail.getCreatedBy());
-				log.debug("log1 : " +auditDetail.getCreatedBy());
+				log.debug("log9 : " +auditDetail.getCreatedBy());
 				ps.setString(10, auditDetail.getLastModifiedBy());
-				log.debug("log1 : " +auditDetail.getLastModifiedBy());
+				log.debug("log10 : " +auditDetail.getLastModifiedBy());
 				ps.setLong(11, auditDetail.getCreatedTime());
-				log.debug("log1 : " +auditDetail.getCreatedTime());
+				log.debug("log11 : " +auditDetail.getCreatedTime());
 				ps.setLong(12, auditDetail.getLastModifiedTime());
-				log.debug("log1 : " +auditDetail.getLastModifiedTime());
+				log.debug("log12 : " +auditDetail.getLastModifiedTime());
 				ps.setString(13, demand.getTenantId());
-				log.debug("log1 : " +demand.getTenantId());
+				log.debug("log13 : " +demand.getTenantId());
 				ps.setString(14, status);
-				log.debug("log1 : " +status);
+				log.debug("log14 : " +status);
 				ps.setObject(15, util.getPGObject(demand.getAdditionalDetails()));
-				log.debug("log1 : " +util.getPGObject(demand.getAdditionalDetails()));
+				log.debug("log15 : " +util.getPGObject(demand.getAdditionalDetails()));
 				ps.setObject(16, demand.getBillExpiryTime());
-				log.debug("log1 : " +demand.getBillExpiryTime());
+				log.debug("log16 : " +demand.getBillExpiryTime());
 				ps.setObject(17, null);
 				ps.setObject(18, demand.getIsPaymentCompleted());
-				log.debug("log1 : " +demand.getIsPaymentCompleted());
+				log.debug("log18 : " +demand.getIsPaymentCompleted());
 			}
 
 			@Override
@@ -231,16 +231,27 @@ public class DemandRepository {
 				DemandDetail demandDetail = newDemandDetails.get(rowNum);
 				AuditDetails auditDetail = demandDetail.getAuditDetails();
 				ps.setString(1, demandDetail.getId());
+				log.debug("log101 : " +demandDetail.getId());
 				ps.setString(2, demandDetail.getDemandId());
+				log.debug("log102 : " +demandDetail.getDemandId());
 				ps.setString(3, demandDetail.getTaxHeadMasterCode());
+				log.debug("log103 : " +demandDetail.getTaxHeadMasterCode());
 				ps.setBigDecimal(4, demandDetail.getTaxAmount());
+				log.debug("log104 : " +demandDetail.getTaxHeadMasterCode());
 				ps.setBigDecimal(5, demandDetail.getCollectionAmount());
+				log.debug("log105 : " +demandDetail.getTaxHeadMasterCode());
 				ps.setString(6, auditDetail.getCreatedBy());
+				log.debug("log106 : " +auditDetail.getCreatedBy());
 				ps.setString(7, auditDetail.getLastModifiedBy());
+				log.debug("log107 : " +auditDetail.getLastModifiedBy());
 				ps.setLong(8, auditDetail.getCreatedTime());
+				log.debug("log108 : " +auditDetail.getCreatedTime());
 				ps.setLong(9, auditDetail.getLastModifiedTime());
+				log.debug("log109 : " +auditDetail.getLastModifiedTime());
 				ps.setString(10, demandDetail.getTenantId());
+				log.debug("log110 : " +demandDetail.getTenantId());
 				ps.setObject(11, util.getPGObject(demandDetail.getAdditionalDetails()));
+				log.debug("log111 : " +demandDetail.getAdditionalDetails());
 			}
 
 			@Override
