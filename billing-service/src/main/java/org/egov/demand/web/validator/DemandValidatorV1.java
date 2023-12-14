@@ -424,7 +424,11 @@ public class DemandValidatorV1 {
 			
 			Boolean isTaxLtZeroAndCollectionNeToZeroAndCollectionGtTax = tax.compareTo(BigDecimal.ZERO) < 0
 					&& collection.compareTo(tax) != 0 && collection.compareTo(BigDecimal.ZERO) != 0;
-			
+			if(demandDetail.getTaxHeadMasterCode().contains("WS_CHARGE"))
+			{
+				System.out.println("WS Contains");
+			}
+			else {
 			if (isTaxGtZeroAndCollectionGtTaxOrCollectionLtZero) {
 				errors.add(INVALID_DEMAND_DETAIL_ERROR_MSG
 						.replace(INVALID_DEMAND_DETAIL_COLLECTION_TEXT, collection.toString())
@@ -442,7 +446,7 @@ public class DemandValidatorV1 {
 			errorMap.put(INVALID_DEMAND_DETAIL_KEY,
 					INVALID_DEMAND_DETAIL_MSG.replace(INVALID_DEMAND_DETAIL_REPLACETEXT, errors.toString()));
 	}
-	
+	}
 
 /*
  * 
