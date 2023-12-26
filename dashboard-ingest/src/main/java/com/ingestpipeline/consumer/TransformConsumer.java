@@ -53,7 +53,7 @@ public class TransformConsumer implements KafkaConsumer {
 				isTransformed = defaulttransformService.transformData(incomingData);
 			}
 			if (isTransformed) {
-				ingestProducer.pushToPipeline(incomingData, applicationProperties.getTransactionTransformationTopic(), applicationProperties.getTransactionTransformationKey());
+				ingestProducer.pushToPipeline(incomingData, applicationProperties.getTransactionTransformationTopic(), null);
 			} /*else {
 				ingestProducer.pushToPipeline(incomingData, Constants.KafkaTopics.ERROR_INTENT, Constants.KafkaTopics.ERROR_INTENT);
 			}*/
