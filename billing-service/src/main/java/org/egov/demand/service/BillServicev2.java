@@ -570,11 +570,45 @@ public class BillServicev2 {
 		} else if (!ObjectUtils.isEmpty(billExpiryPeriod) && 0 < billExpiryPeriod) {
 			cal.setTimeInMillis(cal.getTimeInMillis() + billExpiryPeriod);
 		}
-
+		 try {				
+			String expireBillingDay = checkBillExpireDay(cal.getTimeInMillis());
+      		         if(expireBillingDay.equals("Saturday")){
+				billExpiryPeriod = billExpiryPeriod+172800000L;
+				log.info("bill expiry period for saturday "+billExpiryPeriod); 
+				cal.setTimeInMillis(cal.getTimeInMillis() + billExpiryPeriod);
+				log.info("exact day for bill expiry if day is saturday "+cal.getTimeInMillis()); 
+			}else if (expireBillingDay.equals("Sunday")) {
+				billExpiryPeriod = billExpiryPeriod+86400000L;
+				log.info("bill expiry period for sunday "+billExpiryPeriod); 
+				cal.setTimeInMillis(cal.getTimeInMillis() + billExpiryPeriod);
+				log.info("exact day for bill expiry if day is sunday "+cal.getTimeInMillis()); 
+			}else {
+				cal.setTimeInMillis(cal.getTimeInMillis() + billExpiryPeriod);
+				log.info("exact day for bill expiry if day is friday "+cal.getTimeInMillis()); 
+			}
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		cal.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DATE), 23, 59, 59);
 		return cal.getTimeInMillis();
 	}
 
+
+	private String checkBillExpireDay(long dateToChek) throws ParseException {
+		  DateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+		  String formatted = format.format(dateToChek);
+		  SimpleDateFormat format1 = new SimpleDateFormat("dd/MM/yyyy");
+		  Date dt1 = format1.parse(formatted);
+		  DateFormat format2 = new SimpleDateFormat("EEEE"); 
+		  String finalDay = format2.format(dt1);
+		  System.out.println(finalDay);
+		  return finalDay;
+	}
+
+
+
+	
 	/**
 	 * creates/ updates bill-account details based on the tax-head code in
 	 * taxCodeAccDetailMap
