@@ -573,9 +573,7 @@ public class BillServicev2 {
 		if (previousExpiryDate.compareTo(cal.getTimeInMillis()) > 0) {
 			cal.setTimeInMillis(previousExpiryDate);
 		} else if (!ObjectUtils.isEmpty(billExpiryPeriod) && 0 < billExpiryPeriod) {
-			cal.setTimeInMillis(cal.getTimeInMillis() + billExpiryPeriod);
-		}
-		 try {				
+			try {				
 			String expireBillingDay = checkBillExpireDay(cal.getTimeInMillis());
       		         if(expireBillingDay.equals("Saturday")){
 				billExpiryPeriod = billExpiryPeriod+172800000L;
@@ -595,6 +593,10 @@ public class BillServicev2 {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
+			
+		}
+		 
 		cal.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DATE), 23, 59, 59);
 		return cal.getTimeInMillis();
 	}
