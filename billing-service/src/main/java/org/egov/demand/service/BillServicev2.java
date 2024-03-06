@@ -444,7 +444,9 @@ public class BillServicev2 {
 
 					minimumAmtPayableForBill = minimumAmtPayableForBill.add(demand.getMinimumAmountPayable());
 					String billDetailId = UUID.randomUUID().toString();
+					log.info("Before fetching bill detail");
 					BillDetailV2 billDetail = getBillDetailForDemand(demand, taxHeadMap, billDetailId);
+					log.info("After fetching bill detail");
 					billDetail.setBillId(billId);
 					billDetail.setId(billDetailId);
 					billDetails.add(billDetail);
@@ -527,10 +529,9 @@ public class BillServicev2 {
 			/* Total tax and collection for the whole demand/bill-detail */
 			totalAmountForDemand = totalAmountForDemand.add(amountForAccDeatil);
 		}
-
-		
+		log.info("Before fetch expirydate for bill");		
 		Long billExpiryDate = getExpiryDateForDemand(demand);
-		
+		log.info("After fetch expirydate for bill--------"+billExpiryDate);
 		return BillDetailV2.builder()
 				.billAccountDetails(new ArrayList<>(taxCodeAccountdetailMap.values()))
 				.amount(totalAmountForDemand)
@@ -568,26 +569,33 @@ public class BillServicev2 {
 		}
 		
 		Long billExpiryPeriod = demand.getBillExpiryTime();
+		log.info("Billing expiry period to expire bill ---"+billExpiryPeriod);
 		Calendar cal = Calendar.getInstance();
 		
 		if (previousExpiryDate.compareTo(cal.getTimeInMillis()) > 0) {
+			log.info("Inside previous expirydate ---"+previousExpiryDate);
 			cal.setTimeInMillis(previousExpiryDate);
 		} else if (!ObjectUtils.isEmpty(billExpiryPeriod) && 0 < billExpiryPeriod) {
+			log.info("Inside expire Billing Day ---"+billExpiryPeriod);
 			try {				
 			String expireBillingDay = checkBillExpireDay(cal.getTimeInMillis());
+			log.info("The Billing expired day is ---"+expireBillingDay);
       		         if(expireBillingDay.equals("Saturday")){
+				 log.info("If the billing expired day is ---Saturday"+expireBillingDay);
 				billExpiryPeriod = billExpiryPeriod+172800000L;
 				log.info("bill expiry period for saturday "+billExpiryPeriod); 
 				cal.setTimeInMillis(cal.getTimeInMillis() + billExpiryPeriod);
 				log.info("exact day for bill expiry if day is saturday "+cal.getTimeInMillis()); 
 			}else if (expireBillingDay.equals("Sunday")) {
+				 log.info("If the billing expired day is ---Sunday"+expireBillingDay);
 				billExpiryPeriod = billExpiryPeriod+86400000L;
 				log.info("bill expiry period for sunday "+billExpiryPeriod); 
 				cal.setTimeInMillis(cal.getTimeInMillis() + billExpiryPeriod);
 				log.info("exact day for bill expiry if day is sunday "+cal.getTimeInMillis()); 
 			}else {
+				 log.info("If the billing expired day is not saturday or sunday"+expireBillingDay);
 				cal.setTimeInMillis(cal.getTimeInMillis() + billExpiryPeriod);
-				log.info("exact day for bill expiry if day is friday "+cal.getTimeInMillis()); 
+				log.info("exact day for bill expiry if day is not saturday or sunday "+cal.getTimeInMillis()); 
 			}
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
@@ -598,6 +606,7 @@ public class BillServicev2 {
 		}
 		 
 		cal.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DATE), 23, 59, 59);
+		log.info("exact time for bill expiry "+cal.getTimeInMillis()); 
 		return cal.getTimeInMillis();
 	}
 
