@@ -581,13 +581,13 @@ public class BillServicev2 {
 				 log.info("If the billing expired day is ---Saturday"+expireBillingDay);
 				billExpiryPeriod = billExpiryPeriod+172800000L;
 				log.info("bill expiry period for saturday "+billExpiryPeriod); 
-				cal.setTimeInMillis(billExpiryPeriod);
+				cal.setTimeInMillis(cal.getTimeInMillis() + billExpiryPeriod);
 				log.info("exact day for bill expiry if day is saturday "+cal.getTimeInMillis()); 
 			}else if (expireBillingDay.equals("Sunday")) {
 				 log.info("If the billing expired day is ---Sunday"+expireBillingDay);
 				billExpiryPeriod = billExpiryPeriod+86400000L;
 				log.info("bill expiry period for sunday "+billExpiryPeriod); 
-				cal.setTimeInMillis(billExpiryPeriod);
+				cal.setTimeInMillis(cal.getTimeInMillis() + billExpiryPeriod);
 				log.info("exact day for bill expiry if day is sunday "+cal.getTimeInMillis()); 
 			}else {
 				 log.info("If the billing expired day is not saturday or sunday"+expireBillingDay);
