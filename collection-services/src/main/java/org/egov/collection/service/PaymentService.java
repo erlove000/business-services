@@ -85,7 +85,16 @@ public class PaymentService {
             paymentSearchCriteria.setPayerIds(payerIds);
         }*/
         List<Payment> payments = paymentRepository.fetchPayments(paymentSearchCriteria);
-
+	    
+        log.info("Request Paramter for One time Receipt: "+paymentSearchCriteria);
+        log.info("Request Paramter for One time Receipt: "+paymentSearchCriteria.getConsumerCodes());
+        log.info("Request Paramter for One time Receipt: "+paymentSearchCriteria.getBusinessService());
+        log.info("Request Paramter for One time Receipt: "+paymentSearchCriteria.getTenantId());
+        List<String> usageCategory = paymentRepository.fetchUsageCategoryByApplicationno(paymentSearchCriteria.getConsumerCodes());
+        List<String> address = paymentRepository.fetchAddressByApplicationno(paymentSearchCriteria.getConsumerCodes());
+        payments.get(0).setUsageCategory(usageCategory.get(0));
+        payments.get(0).setAddress(address.get(0));
+	    
         return payments;
     }
 
