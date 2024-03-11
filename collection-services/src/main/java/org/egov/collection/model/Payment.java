@@ -104,7 +104,12 @@ public class Payment {
     @JsonProperty("fileStoreId")
     private String fileStoreId;
 
-
+	@JsonProperty("usageCategory")
+	private String usageCategory;
+	
+	@JsonProperty("address")
+	private String address;
+    
     public Payment addpaymentDetailsItem(PaymentDetail paymentDetail) {
         if (this.paymentDetails == null) {
             this.paymentDetails = new ArrayList<>();
