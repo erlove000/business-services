@@ -303,5 +303,45 @@ public class PaymentRepository {
         return namedParameterJdbcTemplate.query(query, preparedStatementValues, new SingleColumnRowMapper<>(String.class));
     }
     
+	public List<String> fetchUsageCategoryByApplicationno(Set<String> consumerCodes) {
+		List<String> res = new ArrayList<>();
+		//String consumercode = consumerCodes.
+		String consumercode = "WS_AP/1012/2023-24/000032";
+		Map<String, Object> preparedStatementValues = new HashMap<>();
+		String queryString = "select a2.usagecategory from eg_ws_connection a1 "
+				+ " inner join eg_pt_property a2 on a1.property_id = a2.propertyid "
+				+ " inner join eg_pt_address a3 on a2.id=a3.propertyid "
+				+ " where a1.applicationno=' "+consumercode+"'";
+		log.info("Query for fetchUsageCategoryByApplicationno" +queryString);
+		try {
+		//	res = jdbcTemplate.queryForList(queryString, String.class);
+			res = namedParameterJdbcTemplate.query(queryString, preparedStatementValues, new SingleColumnRowMapper<>(String.class));
+		} catch (Exception ex) {
+			log.error("Exception while reading usage category" + ex.getMessage());
+		}
+		return res;
+	}
+
+
+
+
+	public List<String> fetchAddressByApplicationno(Set<String> consumerCodes) {
+		List<String> res = new ArrayList<>();
+		//String consumercode = consumerCodes.
+		String consumercode = "WS_AP/1012/2023-24/000032";
+		Map<String, Object> preparedStatementValues = new HashMap<>();
+		String queryString = "select CONCAT(doorno,buildingname,city) as address from eg_ws_connection a1 "
+				+ " inner join eg_pt_property a2 on a1.property_id = a2.propertyid "
+				+ " inner join eg_pt_address a3 on a2.id=a3.propertyid "
+				+ " where a1.applicationno=' "+consumercode+"'";
+		log.info("Query for :fetchAddressByApplicationno " +queryString);
+		try {
+		//	res = jdbcTemplate.queryForList(queryString, String.class);
+			res = namedParameterJdbcTemplate.query(queryString, preparedStatementValues, new SingleColumnRowMapper<>(String.class));
+		} catch (Exception ex) {
+			log.error("Exception while reading usage category" + ex.getMessage());
+		}
+		return res;
+	}
 	
 }
