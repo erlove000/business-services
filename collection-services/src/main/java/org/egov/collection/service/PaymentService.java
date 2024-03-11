@@ -85,7 +85,7 @@ public class PaymentService {
             paymentSearchCriteria.setPayerIds(payerIds);
         }*/
         List<Payment> payments = paymentRepository.fetchPayments(paymentSearchCriteria);
-	    
+	   if(paymentSearchCriteria.getBusinessService().equals("WS.ONE_TIME_FEE")|| paymentSearchCriteria.getBusinessService().equals("SW.ONE_TIME_FEE")) {  
         log.info("Request Paramter for One time Receipt: "+paymentSearchCriteria);
         log.info("Request Paramter for One time Receipt: "+paymentSearchCriteria.getConsumerCodes());
         log.info("Request Paramter for One time Receipt: "+paymentSearchCriteria.getBusinessService());
@@ -94,7 +94,7 @@ public class PaymentService {
         List<String> address = paymentRepository.fetchAddressByApplicationno(paymentSearchCriteria.getConsumerCodes());
         payments.get(0).setUsageCategory(usageCategory.get(0));
         payments.get(0).setAddress(address.get(0));
-	    
+	}  
         return payments;
     }
 
