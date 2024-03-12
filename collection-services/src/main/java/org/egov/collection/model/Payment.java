@@ -109,6 +109,9 @@ public class Payment {
 	
 	@JsonProperty("address")
 	private String address;
+	
+	@JsonProperty("propertyDetail")
+	private HashMap<String, String> propertyDetail;
     
     public Payment addpaymentDetailsItem(PaymentDetail paymentDetail) {
         if (this.paymentDetails == null) {
