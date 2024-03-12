@@ -302,6 +302,72 @@ public class PaymentRepository {
         String query = paymentQueryBuilder.getIdQuery(paymentSearchCriteria, preparedStatementValues);
         return namedParameterJdbcTemplate.query(query, preparedStatementValues, new SingleColumnRowMapper<>(String.class));
     }
+
+	public List<String> fetchPropertyDetail(String consumerCode) {
+		List<String> status = new ArrayList<String>();
+		List<String> oldConnectionno = fetchOldConnectionNo(consumerCode);
+		List<String> plotSize = fetchLandArea(consumerCode);
+		List<String> usageCategory = fetchUsageCategory(consumerCode);
+		if(oldConnectionno.size()>0)
+		status.add(oldConnectionno.get(0));
+		if(plotSize.size()>0)
+		status.add(plotSize.get(0));
+		if(usageCategory.size()>0)
+		status.add(usageCategory.get(0));		
+		return status;
+	}
+
+	public List<String> fetchOldConnectionNo(String consumerCode) {
+		List<String> res = new ArrayList<>();
+		String queryString = "select oldconnectionno from eg_ws_connection where connectionno='"+consumerCode+"'";
+		log.info("Query: " +queryString);
+		try {
+		//	res = jdbcTemplate.queryForList(queryString, String.class);
+			res = namedParameterJdbcTemplate.query(queryString, new SingleColumnRowMapper<>(String.class));
+		} catch (Exception ex) {
+			log.error("Exception while reading bill scheduler status" + ex.getMessage());
+		}
+		return res;
+	}
+	
+	public List<String> fetchLandArea(String consumerCode) {
+		List<String> res = new ArrayList<>();
+		Map<String, Object> preparedStatementValues = new HashMap<>();
+		String queryString = "select a2.landarea from eg_ws_connection a1 inner join eg_pt_property a2 on a1.property_id= a2.propertyid"
+				+ " where a1.connectionno = '"+consumerCode+"'";
+		log.info("Query: " +queryString);
+		try {
+			//res = jdbcTemplate.queryForList(queryString, String.class);
+			res = namedParameterJdbcTemplate.query(queryString, preparedStatementValues, new SingleColumnRowMapper<>(String.class));
+		} catch (Exception ex) {
+			log.error("Exception while reading bill scheduler status" + ex.getMessage());
+		}
+		return res;
+	}
+	
+	
+	
+	public List<String> fetchUsageCategory(String consumerCode) {
+		List<String> res = new ArrayList<>();
+		Map<String, Object> preparedStatementValues = new HashMap<>();
+		String queryString = "select a2.usagecategory from eg_ws_connection a1 inner join eg_pt_property a2 on a1.property_id= a2.propertyid"
+				+ " where a1.connectionno = '"+consumerCode+"'";
+		log.info("Query: " +queryString);
+		try {
+		//	res = jdbcTemplate.queryForList(queryString, String.class);
+			res = namedParameterJdbcTemplate.query(queryString, preparedStatementValues, new SingleColumnRowMapper<>(String.class));
+		} catch (Exception ex) {
+			log.error("Exception while reading bill scheduler status" + ex.getMessage());
+		}
+		return res;
+	}
+
+
+
+
+
+
+	
     
 	public List<String> fetchUsageCategoryByApplicationno(Set<String> consumerCodes) {
 		List<String> res = new ArrayList<>();
