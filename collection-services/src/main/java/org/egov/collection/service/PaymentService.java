@@ -117,6 +117,11 @@ public class PaymentService {
         paymentEnricher.enrichPaymentPostValidate(paymentRequest);
 
         Payment payment = paymentRequest.getPayment();
+	String connectionno = payment.getPaymentDetails().get(0).getBill().getConsumerCode();
+        String businessservice = payment.getPaymentDetails().get(0).getBusinessService();
+        if(businessservice.equals("WS")||businessservice.equals("SW")) {
+        setPropertyData(connectionno,payment);
+        }
         Map<String, Bill> billIdToApportionedBill = apportionerService.apportionBill(paymentRequest);
         paymentEnricher.enrichAdvanceTaxHead(new LinkedList<>(billIdToApportionedBill.values()));
         setApportionedBillsToPayment(billIdToApportionedBill,payment);
@@ -132,6 +137,20 @@ public class PaymentService {
         return payment;
     }
 
+
+    private void setPropertyData(String connectionno,Payment payment) {
+		List<String> status = paymentRepository.fetchPropertyDetail(connectionno);		
+		HashMap<String, String> additionalDetail = new HashMap<>();		
+		 if(!StringUtils.isEmpty(status.get(0)))
+		additionalDetail.put("oldConnectionno", status.get(0));
+		 if(!StringUtils.isEmpty(status.get(1)))
+		additionalDetail.put("landArea", status.get(1));
+		 if(!StringUtils.isEmpty(status.get(2)))
+		additionalDetail.put("usageCategory", status.get(2));
+		payment.setPropertyDetail(additionalDetail);		
+	}
+
+	
 
     /**
      * If Citizen is paying, the id of the logged in user becomes payer id.
