@@ -84,7 +84,7 @@ public class PaymentService {
             payerIds.add(requestInfo.getUserInfo().getUuid());
             paymentSearchCriteria.setPayerIds(payerIds);
         }*/
-        List<Payment> payments = paymentRepository.fetchPayments(paymentSearchCriteria);t
+        List<Payment> payments = paymentRepository.fetchPayments(paymentSearchCriteria);
 	if(null == paymentSearchCriteria.getBusinessService()){
 	if(paymentSearchCriteria.getBusinessService().equals("WS.ONE_TIME_FEE")|| paymentSearchCriteria.getBusinessService().equals("SW.ONE_TIME_FEE")) {  
         List<String> usageCategory = paymentRepository.fetchUsageCategoryByApplicationno(paymentSearchCriteria.getConsumerCodes());
