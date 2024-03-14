@@ -126,11 +126,6 @@ public class PaymentService {
         paymentEnricher.enrichPaymentPostValidate(paymentRequest);
 
         Payment payment = paymentRequest.getPayment();
-	String connectionno = payment.getPaymentDetails().get(0).getBill().getConsumerCode();
-        String businessservice = payment.getPaymentDetails().get(0).getBusinessService();
-        if(businessservice.equals("WS")||businessservice.equals("SW")) {
-        setPropertyData(connectionno,payment);
-        }
         Map<String, Bill> billIdToApportionedBill = apportionerService.apportionBill(paymentRequest);
         paymentEnricher.enrichAdvanceTaxHead(new LinkedList<>(billIdToApportionedBill.values()));
         setApportionedBillsToPayment(billIdToApportionedBill,payment);
