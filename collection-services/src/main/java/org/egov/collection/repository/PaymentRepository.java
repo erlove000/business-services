@@ -389,10 +389,6 @@ public class PaymentRepository {
 		}
 		return res;
 	}
-
-
-
-
 	public List<String> fetchAddressByApplicationno(Set<String> consumerCodes) {
 		List<String> res = new ArrayList<>();
 		String consumercode = null;
@@ -406,6 +402,21 @@ public class PaymentRepository {
 				+ " inner join eg_pt_address a3 on a2.id=a3.propertyid "
 				+ " where a1.applicationno='"+consumercode+"'";
 		log.info("Query for fetchAddressByApplicationno: " +queryString);
+		try {
+			res = namedParameterJdbcTemplate.query(queryString, preparedStatementValues, new SingleColumnRowMapper<>(String.class));
+		} catch (Exception ex) {
+			log.error("Exception while reading usage category" + ex.getMessage());
+		}
+		return res;
+	}
+
+	public List<String> fetchConsumerCodeByReceiptNumber(String receiptnumber) {
+		List<String> res = new ArrayList<>();
+		Map<String, Object> preparedStatementValues = new HashMap<>();
+		String queryString = "select bill.consumercode from egcl_paymentdetail pd, egcl_bill bill "
+				+ " where bill.id=pd.billid  "
+				+ " and pd.receiptnumber='"+receiptnumber+"'";
+		log.info("Query: " +queryString);
 		try {
 			res = namedParameterJdbcTemplate.query(queryString, preparedStatementValues, new SingleColumnRowMapper<>(String.class));
 		} catch (Exception ex) {
