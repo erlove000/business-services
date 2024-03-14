@@ -92,6 +92,17 @@ public class PaymentService {
         payments.get(0).setUsageCategory(usageCategory.get(0));
         payments.get(0).setAddress(address.get(0));
 	}  
+	}else if(null != paymentSearchCriteria.getReceiptNumbers()){
+		String receiptnumber = null;
+		 Iterator<String> iterate = paymentSearchCriteria.getReceiptNumbers().iterator();
+		 while(iterate.hasNext()) {
+			 receiptnumber =   iterate.next();			  
+		}	
+		String receipt[]=receiptnumber.split("/");
+     	String businessservice= receipt[0];
+     	if(businessservice.equals("WS")||businessservice.equals("SW")) {
+            setPropertyData(receiptnumber,payments);
+        }
 	}
         return payments;
     }
@@ -136,8 +147,10 @@ public class PaymentService {
     }
 
 
-    private void setPropertyData(String connectionno,Payment payment) {
-		List<String> status = paymentRepository.fetchPropertyDetail(connectionno);		
+    private void setPropertyData(String receiptnumber,List<Payment> payments) {
+    	List<String> consumercode = paymentRepository.fetchConsumerCodeByReceiptNumber(receiptnumber);	
+    	String connectionno = consumercode.get(0);
+    	List<String> status = paymentRepository.fetchPropertyDetail(connectionno);		
 		HashMap<String, String> additionalDetail = new HashMap<>();		
 		 if(!StringUtils.isEmpty(status.get(0)))
 		additionalDetail.put("oldConnectionno", status.get(0));
@@ -145,10 +158,8 @@ public class PaymentService {
 		additionalDetail.put("landArea", status.get(1));
 		 if(!StringUtils.isEmpty(status.get(2)))
 		additionalDetail.put("usageCategory", status.get(2));
-		payment.setPropertyDetail(additionalDetail);		
+		payments.get(0).setPropertyDetail(additionalDetail);		
 	}
-
-	
 
     /**
      * If Citizen is paying, the id of the logged in user becomes payer id.
