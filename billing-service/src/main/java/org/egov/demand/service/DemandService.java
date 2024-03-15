@@ -96,6 +96,28 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DemandService {
 
+	private BigDecimal finalAmount = BigDecimal.ZERO; 
+
+    public BigDecimal getFinalAmount() {
+        return finalAmount;
+    }
+
+    public void setFinalAmount(BigDecimal finalAmount) {
+        this.finalAmount = finalAmount;
+    }
+    
+    private BigDecimal tobe = BigDecimal.ZERO; 
+
+    public BigDecimal gettobe() {
+        return tobe;
+    }
+
+    public void settobe(BigDecimal tobe) {
+        this.tobe = tobe;
+    }
+    
+	
+	
 	@Autowired
 	private DemandRepository demandRepository;
 
@@ -372,31 +394,66 @@ public class DemandService {
 	private void apportionAdvanceIfExist(DemandRequest demandRequest, DocumentContext mdmsData,List<Demand> demandToBeCreated,List<Demand> demandToBeUpdated){
 		List<Demand> demands = demandRequest.getDemands();
 		RequestInfo requestInfo = demandRequest.getRequestInfo();
-
+		BigDecimal finalAmount = BigDecimal.ZERO; // Renamed to follow Java naming conventions
+	
 		for(Demand demand : demands) {
 			String businessService = demand.getBusinessService();
 			String consumerCode = demand.getConsumerCode();
 			String tenantId = demand.getTenantId();
-
-			// Searching demands based on consumer code of the current demand (demand which has to be created)
+			BigDecimal admamt = BigDecimal.ZERO;
+	        BigDecimal taxamt = BigDecimal.ZERO;
 			DemandCriteria searchCriteria = DemandCriteria.builder().tenantId(tenantId).consumerCode(Collections.singleton(consumerCode)).businessService(businessService).build();
 			List<Demand> demandsFromSearch = demandRepository.getDemands(searchCriteria);
-
-			// If no demand is found means there is no advance available. The current demand is added for creation
+			List<Demand> demandsToBeApportioned = getDemandsContainingAdvance(demandsFromSearch, mdmsData);
 			if (CollectionUtils.isEmpty(demandsFromSearch)){
 				demandToBeCreated.add(demand);
 				continue;
 			}
+			List<Demand> demandsToBeApportioneds = getDemandsContainingAdvance(demandsFromSearch, mdmsData);
+					if (businessService.equalsIgnoreCase("WS")||businessService.equalsIgnoreCase("SW")) {
 
-			// Fetch the demands containing advance amount
-			List<Demand> demandsToBeApportioned = getDemandsContainingAdvance(demandsFromSearch, mdmsData);
+			 for (Demand demandss : demandsToBeApportioneds) {
+		       
+		            for (DemandDetail demandDetails : demandss.getDemandDetails()) {
+		 
+		                if (demandDetails.getTaxHeadMasterCode().equals("WS_ADVANCE_CARRYFORWARD")) {
+		              
+		                	
+		                	admamt=demandDetails.getTaxAmount();
+//		                	Integer abc=-600;
+//		                	
+//		                admamt=new BigDecimal(abc);
+		                    System.out.println("Tax Amount for WS_ADVANCE_CARRYFORWARD: " + demandDetails.getTaxAmount());
+		                }
+		            }
+			 }
+		
+		            // Iterate over the demand details of each demand
+		            for (DemandDetail demandDetail : demand.getDemandDetails()) {
+		                // Check if the taxHeadMasterCode matches the specified code
+		                if (demandDetail.getTaxHeadMasterCode().equals("WS_CHARGE")) {
+		                    // Print or store the taxAmounttaxamt
+		                	taxamt= demandDetail.getTaxAmount();
+		                
+		                    System.out.println("Tax Amount for WS_ADVANCE_CARRYFORWARD: " + demandDetail.getTaxAmount());
+		                }
+		            }
+		       System.out.println("tobe Amount "+tobe);
+								        
+						if( tobe.intValue()==0)
+						{
+							 finalAmount = admamt;
+							}
+						else {
+							
+							finalAmount=tobe.add(taxamt);
+						}
+						System.out.println("Final amount "+finalAmount);
 
-			// If no demand is found with advance amount the code continues to next demand and adds the current demand for creation
-			if(CollectionUtils.isEmpty(demandsToBeApportioned)){
-				demandToBeCreated.add(demand);
-				continue;
-			}
 
+				
+
+					demandsToBeApportioned= getDemandsContainingAdvancenew(demandsFromSearch, mdmsData,finalAmount);
 			// The current demand is added to get apportioned
 			demandsToBeApportioned.add(demand);
 
@@ -420,7 +477,37 @@ public class DemandService {
 				else demandToBeUpdated.add(demandFromResponse);
 			});
 		}
+					else
+					{
+						if(CollectionUtils.isEmpty(demandsToBeApportioned)){
+							demandToBeCreated.add(demand);
+							continue;
+						}
 
+						// The current demand is added to get apportioned
+						demandsToBeApportioned.add(demand);
+
+						DemandApportionRequest apportionRequest = DemandApportionRequest.builder().requestInfo(requestInfo).demands(demandsToBeApportioned).tenantId(tenantId).build();
+						try {
+							String apportionRequestStr = mapper.writeValueAsString(apportionRequest);
+							log.info("apportionRequest: {} and ApportionURL: {}", apportionRequestStr, util.getApportionURL());
+						}catch (Exception e) {e.printStackTrace();}
+						
+						Object response = serviceRequestRepository.fetchResult(util.getApportionURL(), apportionRequest);
+						ApportionDemandResponse apportionDemandResponse = mapper.convertValue(response, ApportionDemandResponse.class);
+						try {
+							String apportionDemandResponseStr = mapper.writeValueAsString(apportionDemandResponse);
+							log.info("apportionDemandResponse: {} and ApportionURL: {}", apportionDemandResponseStr, util.getApportionURL());
+						}catch (Exception e) {e.printStackTrace();}
+						
+						// Only the current demand is to be created rest all are to be updated
+						apportionDemandResponse.getDemands().forEach(demandFromResponse -> {
+							if(demandFromResponse.getId().equalsIgnoreCase(demand.getId()))
+								demandToBeCreated.add(demandFromResponse);
+							else demandToBeUpdated.add(demandFromResponse);
+						});
+					}
+		}
 	}
 
 
@@ -450,13 +537,16 @@ public class DemandService {
 		/*
 		* Loop through each demand and each demandDetail to find the demandDetail for which advance amount is available
 		* */
-
 		for (Demand demand : demands){
 
 			for(DemandDetail demandDetail : demand.getDemandDetails()){
 
 				if(demandDetail.getTaxHeadMasterCode().equalsIgnoreCase(advanceTaxHeadCode)
 						&& demandDetail.getTaxAmount().compareTo(demandDetail.getCollectionAmount()) != 0){
+					
+//					  if (demandDetail.getTaxHeadMasterCode().equals("WS_ADVANCE_CARRYFORWARD")) {
+//		                    demandDetail.setTaxAmount(BigDecimal.ZERO);
+//		                }
 					demandsWithAdvance.add(demand);
 					break;
 				}
@@ -465,6 +555,50 @@ public class DemandService {
 
 		return new ArrayList<>(demandsWithAdvance);
 	}
+	
+	
+	private List<Demand> getDemandsContainingAdvancenew(List<Demand> demands,DocumentContext mdmsData, BigDecimal Finalamount){
+
+		Set<Demand> demandsWithAdvance = new HashSet<>();
+
+		// Create the jsonPath to fetch the advance taxhead for the given businessService
+		String businessService = demands.get(0).getBusinessService();
+		String jsonpath = ADVANCE_TAXHEAD_JSONPATH_CODE;
+		jsonpath = jsonpath.replace("{}",businessService);
+
+		// Apply the jsonPath on the master Data to fetch the value. The output will be an array with single element
+		List<String> taxHeads = mdmsData.read(jsonpath);
+
+		if(CollectionUtils.isEmpty(taxHeads))
+			throw new CustomException("NO TAXHEAD FOUND","No Advance taxHead found for businessService: "+businessService);
+
+		String advanceTaxHeadCode =  taxHeads.get(0);
+
+		/*
+		* Loop through each demand and each demandDetail to find the demandDetail for which advance amount is available
+		* */
+		for (Demand demand : demands){
+
+			for(DemandDetail demandDetail : demand.getDemandDetails()){
+
+				if(demandDetail.getTaxHeadMasterCode().equalsIgnoreCase(advanceTaxHeadCode)
+						&& demandDetail.getTaxAmount().compareTo(demandDetail.getCollectionAmount()) != 0){
+					
+					  if (demandDetail.getTaxHeadMasterCode().equals("WS_ADVANCE_CARRYFORWARD")) {
+		                    demandDetail.setTaxAmount(Finalamount);
+		                }
+					  tobe=Finalamount;
+					  
+					demandsWithAdvance.add(demand);
+					break;
+				}
+			}
+		}
+
+		return new ArrayList<>(demandsWithAdvance);
+	}
+	
+	
 	
 	/**
 	 * Method to add demand details from amendment if exists in DB
