@@ -51,6 +51,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.demand.amendment.model.Amendment;
@@ -116,8 +120,13 @@ public class DemandService {
         this.tobe = tobe;
     }
     
+    
+    String filePath1 = "config1.properties";
+    String filePath2 = "config2.properties";
+
 	
-	
+    int storedvariable = readFromPropertiesFile(filePath1, "tempVariable1");
+    int count = readFromPropertiesFile(filePath2, "tempVariable2");
 	@Autowired
 	private DemandRepository demandRepository;
 
@@ -192,7 +201,12 @@ public class DemandService {
 		log.info("demandsToBeCreated: {}", demandsToBeCreated.toString());
 
 		save(new DemandRequest(requestInfo,demandsToBeCreated));
-		
+		storedvariable=0;
+		count=0;
+		 writeToPropertiesFile(filePath1, "tempVariable1", storedvariable);
+	       writeToPropertiesFile(filePath2, "tempVariable2", count);
+	       System.out.println("Doiing Stored Value :"+storedvariable);
+	       System.out.println("Doiing count Value :"+count);
 		if (!CollectionUtils.isEmpty(amendmentUpdates))
 			amendmentRepository.updateAmendment(amendmentUpdates);
 		if(!CollectionUtils.isEmpty(demandToBeUpdated))
@@ -394,8 +408,9 @@ public class DemandService {
 	private void apportionAdvanceIfExist(DemandRequest demandRequest, DocumentContext mdmsData,List<Demand> demandToBeCreated,List<Demand> demandToBeUpdated){
 		List<Demand> demands = demandRequest.getDemands();
 		RequestInfo requestInfo = demandRequest.getRequestInfo();
-		BigDecimal finalAmount = BigDecimal.ZERO; // Renamed to follow Java naming conventions
-	
+		BigDecimal finalAmount = BigDecimal.ZERO;
+		BigDecimal abc = BigDecimal.ZERO; // Renamed to follow Java naming conventions
+	Boolean isfinal=false;
 		for(Demand demand : demands) {
 			String businessService = demand.getBusinessService();
 			String consumerCode = demand.getConsumerCode();
@@ -420,50 +435,89 @@ public class DemandService {
 		              
 		                	
 		                	admamt=demandDetails.getTaxAmount();
-//		                	Integer abc=-600;
-//		                	
-//		                admamt=new BigDecimal(abc);
+
 		                    System.out.println("Tax Amount for WS_ADVANCE_CARRYFORWARD: " + demandDetails.getTaxAmount());
 		                }
 		            }
 			 }
 		
-		            // Iterate over the demand details of each demand
+		       
 		            for (DemandDetail demandDetail : demand.getDemandDetails()) {
-		                // Check if the taxHeadMasterCode matches the specified code
-		                if (demandDetail.getTaxHeadMasterCode().equals("WS_CHARGE")) {
-		                    // Print or store the taxAmounttaxamt
+		              
+		                if (demandDetail.getTaxHeadMasterCode().equals("WS_CHARGE") || demandDetail.getTaxHeadMasterCode().equals("WS_CHARGE")) {
+		          
 		                	taxamt= demandDetail.getTaxAmount();
 		                
 		                    System.out.println("Tax Amount for WS_ADVANCE_CARRYFORWARD: " + demandDetail.getTaxAmount());
 		                }
 		            }
+		            
+		            demandsToBeApportioned= getDemandsContainingAdvancenew(demandsFromSearch, mdmsData,finalAmount);
+
+		            writeToPropertiesFile(filePath1, "tempVariable1", storedvariable);
+		            writeToPropertiesFile(filePath2, "tempVariable2", count);
+
+		            // Display the values
+		            System.out.println("Temporary variable 1 value: " + storedvariable);
+		            System.out.println("Temporary variable 2 value: " + count);
+		            
+		            
 		       System.out.println("tobe Amount "+tobe);
-								        
-						if( tobe.intValue()==0)
+						        
+						if( storedvariable==0 && count!=1)
 						{
-							 finalAmount = admamt;
-							}
-						else {
+							storedvariable=admamt.intValue();
+//							int absc=-350;
+//							admamt=new BigDecimal(absc);
+							finalAmount = admamt;
+							storedvariable=finalAmount.intValue();
 							
-							finalAmount=tobe.add(taxamt);
-						}
+						       writeToPropertiesFile(filePath1, "tempVariable1", storedvariable);
+						      
+	    	   			
+							}
+						
+
+					        
+				        
+								if( storedvariable<0 && count==1)
+					            {
+					            	storedvariable= storedvariable +taxamt.intValue();
+					            	finalAmount=new BigDecimal(storedvariable);
+								       writeToPropertiesFile(filePath1, "tempVariable1", storedvariable);
+					            }
+					            
+					            else if(storedvariable>0)
+					            {
+					            	finalAmount=BigDecimal.ZERO;
+					            }
+					
+
+					            
+					      
+					
+					            System.out.println("Temporary variable value: " + storedvariable);
+						
+							
+							
+					
+						
 						System.out.println("Final amount "+finalAmount);
 
 
-				
-
-					demandsToBeApportioned= getDemandsContainingAdvancenew(demandsFromSearch, mdmsData,finalAmount);
-			// The current demand is added to get apportioned
+					
 			demandsToBeApportioned.add(demand);
-
+			
+	
 			DemandApportionRequest apportionRequest = DemandApportionRequest.builder().requestInfo(requestInfo).demands(demandsToBeApportioned).tenantId(tenantId).build();
-			try {
+			try {//demandsToBeApportioned.add(demand);
 				String apportionRequestStr = mapper.writeValueAsString(apportionRequest);
 				log.info("apportionRequest: {} and ApportionURL: {}", apportionRequestStr, util.getApportionURL());
 			}catch (Exception e) {e.printStackTrace();}
 			
 			Object response = serviceRequestRepository.fetchResult(util.getApportionURL(), apportionRequest);
+			count=1;
+			 writeToPropertiesFile(filePath2, "tempVariable2", count);
 			ApportionDemandResponse apportionDemandResponse = mapper.convertValue(response, ApportionDemandResponse.class);
 			try {
 				String apportionDemandResponseStr = mapper.writeValueAsString(apportionDemandResponse);
@@ -476,6 +530,7 @@ public class DemandService {
 					demandToBeCreated.add(demandFromResponse);
 				else demandToBeUpdated.add(demandFromResponse);
 			});
+			
 		}
 					else
 					{
@@ -510,7 +565,29 @@ public class DemandService {
 		}
 	}
 
+	 private static int readFromPropertiesFile(String filePath, String propertyName) {
+	        Properties properties = new Properties();
+	        int value = 0;
+	        try (FileInputStream fis = new FileInputStream(filePath)) {
+	            properties.load(fis);
+	            // Retrieve the value, defaulting to 0 if not found
+	            value = Integer.parseInt(properties.getProperty(propertyName, "0"));
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	        return value;
+	    }
 
+	    private static void writeToPropertiesFile(String filePath, String propertyName, int value) {
+	        Properties properties = new Properties();
+	        properties.setProperty(propertyName, String.valueOf(value));
+	        try (FileOutputStream fos = new FileOutputStream(filePath)) {
+	            properties.store(fos, "Temporary variable value");
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	    }
+	
 	/**
 	 * Returns demands which has advance amount avaialable for apportion
 	 * @param demands List of demands from which demands with advance has to be picked
@@ -584,7 +661,7 @@ public class DemandService {
 				if(demandDetail.getTaxHeadMasterCode().equalsIgnoreCase(advanceTaxHeadCode)
 						&& demandDetail.getTaxAmount().compareTo(demandDetail.getCollectionAmount()) != 0){
 					
-					  if (demandDetail.getTaxHeadMasterCode().equals("WS_ADVANCE_CARRYFORWARD")) {
+					  if (demandDetail.getTaxHeadMasterCode().equals("WS_ADVANCE_CARRYFORWARD") || demandDetail.getTaxHeadMasterCode().equals("SW_ADVANCE_CARRYFORWARD")) {
 		                    demandDetail.setTaxAmount(Finalamount);
 		                }
 					  tobe=Finalamount;
