@@ -428,7 +428,7 @@ public class DemandService {
 					if (businessService.equalsIgnoreCase("WS")||businessService.equalsIgnoreCase("SW")) {
 
 			 for (Demand demandss : demandsToBeApportioneds) {
-		       
+		       System.out.println("Demand Detail apportioned "+ demands);
 		            for (DemandDetail demandDetails : demandss.getDemandDetails()) {
 		 
 		                if (demandDetails.getTaxHeadMasterCode().equals("WS_ADVANCE_CARRYFORWARD")) {
@@ -448,7 +448,7 @@ public class DemandService {
 		          
 		                	taxamt= demandDetail.getTaxAmount();
 		                
-		                    System.out.println("Tax Amount for WS_ADVANCE_CARRYFORWARD: " + demandDetail.getTaxAmount());
+		                    System.out.println("Tax Amount for Tax Amount:  " + demandDetail.getTaxAmount());
 		                }
 		            }
 		            
@@ -458,17 +458,16 @@ public class DemandService {
 		            writeToPropertiesFile(filePath2, "tempVariable2", count);
 
 		            // Display the values
-		            System.out.println("Temporary variable 1 value: " + storedvariable);
-		            System.out.println("Temporary variable 2 value: " + count);
+		            System.out.println("Stored Variabel value: " + storedvariable);
+		            System.out.println("Count value: " + count);
 		            
 		            
 		       System.out.println("tobe Amount "+tobe);
 						        
 						if( storedvariable==0 && count!=1)
 						{
+							System.out.println("stored Variable is  0 (initial Phase)");
 							storedvariable=admamt.intValue();
-//							int absc=-350;
-//							admamt=new BigDecimal(absc);
 							finalAmount = admamt;
 							storedvariable=finalAmount.intValue();
 							
@@ -482,6 +481,7 @@ public class DemandService {
 				        
 								if( storedvariable<0 && count==1)
 					            {
+							    System.out.println("stored Variable is less than 0 ");
 					            	storedvariable= storedvariable +taxamt.intValue();
 					            	finalAmount=new BigDecimal(storedvariable);
 								       writeToPropertiesFile(filePath1, "tempVariable1", storedvariable);
