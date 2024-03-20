@@ -51,10 +51,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Properties;
 
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.demand.amendment.model.Amendment;
@@ -100,33 +96,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DemandService {
 
-	private BigDecimal finalAmount = BigDecimal.ZERO; 
-
-    public BigDecimal getFinalAmount() {
-        return finalAmount;
-    }
-
-    public void setFinalAmount(BigDecimal finalAmount) {
-        this.finalAmount = finalAmount;
-    }
-    
-    private BigDecimal tobe = BigDecimal.ZERO; 
-
-    public BigDecimal gettobe() {
-        return tobe;
-    }
-
-    public void settobe(BigDecimal tobe) {
-        this.tobe = tobe;
-    }
-    
-    
-    String filePath1 = "config1.properties";
-    String filePath2 = "config2.properties";
-
-	
-    int storedvariable = readFromPropertiesFile(filePath1, "tempVariable1");
-    int count = readFromPropertiesFile(filePath2, "tempVariable2");
 	@Autowired
 	private DemandRepository demandRepository;
 
@@ -201,12 +170,7 @@ public class DemandService {
 		log.info("demandsToBeCreated: {}", demandsToBeCreated.toString());
 
 		save(new DemandRequest(requestInfo,demandsToBeCreated));
-		storedvariable=0;
-		count=0;
-		 writeToPropertiesFile(filePath1, "tempVariable1", storedvariable);
-	       writeToPropertiesFile(filePath2, "tempVariable2", count);
-	       System.out.println("Doiing Stored Value :"+storedvariable);
-	       System.out.println("Doiing count Value :"+count);
+		
 		if (!CollectionUtils.isEmpty(amendmentUpdates))
 			amendmentRepository.updateAmendment(amendmentUpdates);
 		if(!CollectionUtils.isEmpty(demandToBeUpdated))
@@ -408,116 +372,41 @@ public class DemandService {
 	private void apportionAdvanceIfExist(DemandRequest demandRequest, DocumentContext mdmsData,List<Demand> demandToBeCreated,List<Demand> demandToBeUpdated){
 		List<Demand> demands = demandRequest.getDemands();
 		RequestInfo requestInfo = demandRequest.getRequestInfo();
-		BigDecimal finalAmount = BigDecimal.ZERO;
-		BigDecimal abc = BigDecimal.ZERO; // Renamed to follow Java naming conventions
-	Boolean isfinal=false;
+
 		for(Demand demand : demands) {
 			String businessService = demand.getBusinessService();
 			String consumerCode = demand.getConsumerCode();
 			String tenantId = demand.getTenantId();
-			BigDecimal admamt = BigDecimal.ZERO;
-	        BigDecimal taxamt = BigDecimal.ZERO;
+
+			// Searching demands based on consumer code of the current demand (demand which has to be created)
 			DemandCriteria searchCriteria = DemandCriteria.builder().tenantId(tenantId).consumerCode(Collections.singleton(consumerCode)).businessService(businessService).build();
 			List<Demand> demandsFromSearch = demandRepository.getDemands(searchCriteria);
-			List<Demand> demandsToBeApportioned = getDemandsContainingAdvance(demandsFromSearch, mdmsData);
+
+			// If no demand is found means there is no advance available. The current demand is added for creation
 			if (CollectionUtils.isEmpty(demandsFromSearch)){
 				demandToBeCreated.add(demand);
 				continue;
 			}
-			List<Demand> demandsToBeApportioneds = getDemandsContainingAdvance(demandsFromSearch, mdmsData);
-					if (businessService.equalsIgnoreCase("WS")||businessService.equalsIgnoreCase("SW")) {
 
-			 for (Demand demandss : demandsToBeApportioneds) {
-		       System.out.println("Demand Detail apportioned "+ demands);
-		            for (DemandDetail demandDetails : demandss.getDemandDetails()) {
-		 
-		                if (demandDetails.getTaxHeadMasterCode().equals("WS_ADVANCE_CARRYFORWARD")) {
-		              
-		                	
-		                	admamt=demandDetails.getTaxAmount();
+			// Fetch the demands containing advance amount
+			List<Demand> demandsToBeApportioned = getDemandsContainingAdvance(demandsFromSearch, mdmsData);
 
-		                    System.out.println("Tax Amount for WS_ADVANCE_CARRYFORWARD: " + demandDetails.getTaxAmount());
-		                }
-		            }
-			 }
-		
-		       
-		            for (DemandDetail demandDetail : demand.getDemandDetails()) {
-		              
-		                if (demandDetail.getTaxHeadMasterCode().equals("WS_CHARGE") || demandDetail.getTaxHeadMasterCode().equals("WS_CHARGE")) {
-		          
-		                	taxamt= demandDetail.getTaxAmount();
-		                
-		                    System.out.println("Tax Amount for Tax Amount:  " + demandDetail.getTaxAmount());
-		                }
-		            }
-		            
-		            demandsToBeApportioned= getDemandsContainingAdvancenew(demandsFromSearch, mdmsData,finalAmount);
+			// If no demand is found with advance amount the code continues to next demand and adds the current demand for creation
+			if(CollectionUtils.isEmpty(demandsToBeApportioned)){
+				demandToBeCreated.add(demand);
+				continue;
+			}
 
-		            writeToPropertiesFile(filePath1, "tempVariable1", storedvariable);
-		            writeToPropertiesFile(filePath2, "tempVariable2", count);
-
-		            // Display the values
-		            System.out.println("Stored Variabel value: " + storedvariable);
-		            System.out.println("Count value: " + count);
-		            
-		            
-		       System.out.println("tobe Amount "+tobe);
-						        
-						if( storedvariable==0 && count!=1)
-						{
-							System.out.println("stored Variable is  0 (initial Phase)");
-							storedvariable=admamt.intValue();
-							finalAmount = admamt;
-							storedvariable=finalAmount.intValue();
-							
-						       writeToPropertiesFile(filePath1, "tempVariable1", storedvariable);
-						      
-	    	   			
-							}
-						
-
-					        
-				        
-								if( storedvariable<0 && count==1)
-					            {
-							    System.out.println("stored Variable is less than 0 ");
-					            	storedvariable= storedvariable +taxamt.intValue();
-					            	finalAmount=new BigDecimal(storedvariable);
-								       writeToPropertiesFile(filePath1, "tempVariable1", storedvariable);
-					            }
-					            
-					            else if(storedvariable>0)
-					            {
-					            	finalAmount=BigDecimal.ZERO;
-					            }
-					
-
-					            
-					      
-					
-					            System.out.println("Temporary variable value: " + storedvariable);
-						
-							
-							
-					
-						
-						System.out.println("Final amount "+finalAmount);
-
-
-					
+			// The current demand is added to get apportioned
 			demandsToBeApportioned.add(demand);
-			
-	
+
 			DemandApportionRequest apportionRequest = DemandApportionRequest.builder().requestInfo(requestInfo).demands(demandsToBeApportioned).tenantId(tenantId).build();
-			try {//demandsToBeApportioned.add(demand);
+			try {
 				String apportionRequestStr = mapper.writeValueAsString(apportionRequest);
 				log.info("apportionRequest: {} and ApportionURL: {}", apportionRequestStr, util.getApportionURL());
 			}catch (Exception e) {e.printStackTrace();}
 			
 			Object response = serviceRequestRepository.fetchResult(util.getApportionURL(), apportionRequest);
-			count=1;
-			 writeToPropertiesFile(filePath2, "tempVariable2", count);
 			ApportionDemandResponse apportionDemandResponse = mapper.convertValue(response, ApportionDemandResponse.class);
 			try {
 				String apportionDemandResponseStr = mapper.writeValueAsString(apportionDemandResponse);
@@ -530,64 +419,11 @@ public class DemandService {
 					demandToBeCreated.add(demandFromResponse);
 				else demandToBeUpdated.add(demandFromResponse);
 			});
-			
 		}
-					else
-					{
-						if(CollectionUtils.isEmpty(demandsToBeApportioned)){
-							demandToBeCreated.add(demand);
-							continue;
-						}
 
-						// The current demand is added to get apportioned
-						demandsToBeApportioned.add(demand);
-
-						DemandApportionRequest apportionRequest = DemandApportionRequest.builder().requestInfo(requestInfo).demands(demandsToBeApportioned).tenantId(tenantId).build();
-						try {
-							String apportionRequestStr = mapper.writeValueAsString(apportionRequest);
-							log.info("apportionRequest: {} and ApportionURL: {}", apportionRequestStr, util.getApportionURL());
-						}catch (Exception e) {e.printStackTrace();}
-						
-						Object response = serviceRequestRepository.fetchResult(util.getApportionURL(), apportionRequest);
-						ApportionDemandResponse apportionDemandResponse = mapper.convertValue(response, ApportionDemandResponse.class);
-						try {
-							String apportionDemandResponseStr = mapper.writeValueAsString(apportionDemandResponse);
-							log.info("apportionDemandResponse: {} and ApportionURL: {}", apportionDemandResponseStr, util.getApportionURL());
-						}catch (Exception e) {e.printStackTrace();}
-						
-						// Only the current demand is to be created rest all are to be updated
-						apportionDemandResponse.getDemands().forEach(demandFromResponse -> {
-							if(demandFromResponse.getId().equalsIgnoreCase(demand.getId()))
-								demandToBeCreated.add(demandFromResponse);
-							else demandToBeUpdated.add(demandFromResponse);
-						});
-					}
-		}
 	}
 
-	 private static int readFromPropertiesFile(String filePath, String propertyName) {
-	        Properties properties = new Properties();
-	        int value = 0;
-	        try (FileInputStream fis = new FileInputStream(filePath)) {
-	            properties.load(fis);
-	            // Retrieve the value, defaulting to 0 if not found
-	            value = Integer.parseInt(properties.getProperty(propertyName, "0"));
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        }
-	        return value;
-	    }
 
-	    private static void writeToPropertiesFile(String filePath, String propertyName, int value) {
-	        Properties properties = new Properties();
-	        properties.setProperty(propertyName, String.valueOf(value));
-	        try (FileOutputStream fos = new FileOutputStream(filePath)) {
-	            properties.store(fos, "Temporary variable value");
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        }
-	    }
-	
 	/**
 	 * Returns demands which has advance amount avaialable for apportion
 	 * @param demands List of demands from which demands with advance has to be picked
@@ -614,16 +450,13 @@ public class DemandService {
 		/*
 		* Loop through each demand and each demandDetail to find the demandDetail for which advance amount is available
 		* */
+
 		for (Demand demand : demands){
 
 			for(DemandDetail demandDetail : demand.getDemandDetails()){
 
 				if(demandDetail.getTaxHeadMasterCode().equalsIgnoreCase(advanceTaxHeadCode)
 						&& demandDetail.getTaxAmount().compareTo(demandDetail.getCollectionAmount()) != 0){
-					
-//					  if (demandDetail.getTaxHeadMasterCode().equals("WS_ADVANCE_CARRYFORWARD")) {
-//		                    demandDetail.setTaxAmount(BigDecimal.ZERO);
-//		                }
 					demandsWithAdvance.add(demand);
 					break;
 				}
@@ -632,50 +465,6 @@ public class DemandService {
 
 		return new ArrayList<>(demandsWithAdvance);
 	}
-	
-	
-	private List<Demand> getDemandsContainingAdvancenew(List<Demand> demands,DocumentContext mdmsData, BigDecimal Finalamount){
-
-		Set<Demand> demandsWithAdvance = new HashSet<>();
-
-		// Create the jsonPath to fetch the advance taxhead for the given businessService
-		String businessService = demands.get(0).getBusinessService();
-		String jsonpath = ADVANCE_TAXHEAD_JSONPATH_CODE;
-		jsonpath = jsonpath.replace("{}",businessService);
-
-		// Apply the jsonPath on the master Data to fetch the value. The output will be an array with single element
-		List<String> taxHeads = mdmsData.read(jsonpath);
-
-		if(CollectionUtils.isEmpty(taxHeads))
-			throw new CustomException("NO TAXHEAD FOUND","No Advance taxHead found for businessService: "+businessService);
-
-		String advanceTaxHeadCode =  taxHeads.get(0);
-
-		/*
-		* Loop through each demand and each demandDetail to find the demandDetail for which advance amount is available
-		* */
-		for (Demand demand : demands){
-
-			for(DemandDetail demandDetail : demand.getDemandDetails()){
-
-				if(demandDetail.getTaxHeadMasterCode().equalsIgnoreCase(advanceTaxHeadCode)
-						&& demandDetail.getTaxAmount().compareTo(demandDetail.getCollectionAmount()) != 0){
-					
-					  if (demandDetail.getTaxHeadMasterCode().equals("WS_ADVANCE_CARRYFORWARD") || demandDetail.getTaxHeadMasterCode().equals("SW_ADVANCE_CARRYFORWARD")) {
-		                    demandDetail.setTaxAmount(Finalamount);
-		                }
-					  tobe=Finalamount;
-					  
-					demandsWithAdvance.add(demand);
-					break;
-				}
-			}
-		}
-
-		return new ArrayList<>(demandsWithAdvance);
-	}
-	
-	
 	
 	/**
 	 * Method to add demand details from amendment if exists in DB
