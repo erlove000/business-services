@@ -86,6 +86,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.DocumentContext;
@@ -125,7 +129,14 @@ public class DemandService {
 
 	@Autowired
 	private DemandValidatorV1 demandValidatorV1;
-	
+	String filePath1 = "config1.properties";
+    String filePath2 = "config2.properties";
+    String filePath3 = "config2.properties";
+
+    // Read the values from the properties files
+    int txamt = readFromPropertiesFile(filePath1, "txamt");
+    int cnt = readFromPropertiesFile(filePath2, "cnt");
+    int finals = readFromPropertiesFile(filePath3, "finals");
 	/**
 	 * Method to create new demand 
 	 * 
@@ -168,7 +179,10 @@ public class DemandService {
 		}
 		
 		log.info("demandsToBeCreated: {}", demandsToBeCreated.toString());
-
+		txamt=0;
+		cnt=0;finals=0;
+		writeToPropertiesFile(filePath1, "txamt", txamt);
+		writeToPropertiesFile(filePath2, "cnt", cnt);writeToPropertiesFile(filePath2, "finals", finals);
 		save(new DemandRequest(requestInfo,demandsToBeCreated));
 		
 		if (!CollectionUtils.isEmpty(amendmentUpdates))
@@ -275,7 +289,28 @@ public class DemandService {
 		// producer.push(applicationProperties.getDemandIndexTopic(), demandRequest);
 		return new DemandResponse(responseInfoFactory.getResponseInfo(requestInfo, HttpStatus.CREATED), demands);
 	}
+	private static int readFromPropertiesFile(String filePath, String propertyName) {
+        Properties properties = new Properties();
+        int value = 0;
+        try (FileInputStream fis = new FileInputStream(filePath)) {
+            properties.load(fis);
+            // Retrieve the value, defaulting to 0 if not found
+            value = Integer.parseInt(properties.getProperty(propertyName, "0"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return value;
+    }
 
+    private static void writeToPropertiesFile(String filePath, String propertyName, int value) {
+        Properties properties = new Properties();
+        properties.setProperty(propertyName, String.valueOf(value));
+        try (FileOutputStream fos = new FileOutputStream(filePath)) {
+            properties.store(fos, "Temporary variable value");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 	/**
 	 * Search method to fetch demands from DB
@@ -377,7 +412,16 @@ public class DemandService {
 			String businessService = demand.getBusinessService();
 			String consumerCode = demand.getConsumerCode();
 			String tenantId = demand.getTenantId();
+			BigDecimal taxamount=BigDecimal.ZERO;
+			List<DemandDetail> newdemandDetail = demand.getDemandDetails();
+			 for (DemandDetail demandDetailnew : newdemandDetail) 
+		        {
+		            if ("WS_CHARGE".equals(demandDetailnew.getTaxHeadMasterCode())) 
+		            {
+		            	taxamount = demandDetailnew.getTaxAmount();
 
+		            }
+		        }
 			// Searching demands based on consumer code of the current demand (demand which has to be created)
 			DemandCriteria searchCriteria = DemandCriteria.builder().tenantId(tenantId).consumerCode(Collections.singleton(consumerCode)).businessService(businessService).build();
 			List<Demand> demandsFromSearch = demandRepository.getDemands(searchCriteria);
@@ -398,8 +442,61 @@ public class DemandService {
 			}
 
 			// The current demand is added to get apportioned
-			demandsToBeApportioned.add(demand);
+			if (businessService.equalsIgnoreCase("WS") || businessService.equalsIgnoreCase("SW"))
+			{
+			if (txamt==0 && cnt ==0)
+			{
+				for (Demand d1 : demandsToBeApportioned) 
+				{
+			        List<DemandDetail> d12 = d1.getDemandDetails();
+			        for (DemandDetail d123 : d12) 
+			        {
+			            if ("WS_ADVANCE_CARRYFORWARD".equals(d123.getTaxHeadMasterCode())) 
+			            {
+			            	txamt = d123.getTaxAmount().intValue();
 
+			            }
+			        }
+			    }
+				cnt=1;
+			}
+			
+			else if (txamt<=0 && cnt ==1)
+			{
+				
+			        	if (finals!=1)
+			        	{
+					       System.out.print("Settling Advcance  ");
+					       txamt = txamt+taxamount.intValue();
+					       if (txamt==0)
+					       	finals=1;
+					       else 
+					       	finals=0;
+					            	
+					       System.out.println("txamt "+txamt);
+					            	
+					   }
+		}
+			        
+			for (Demand demand12 : demandsToBeApportioned) {
+			    List<DemandDetail> demandDetails23 = demand12.getDemandDetails();
+			    for (DemandDetail demandDetail45 : demandDetails23) {
+			        if ("WS_ADVANCE_CARRYFORWARD".equals(demandDetail45.getTaxHeadMasterCode())) {
+			        	BigDecimal tax=new BigDecimal(txamt);
+			            demandDetail45.setTaxAmount(tax);
+			        }
+			    }
+			}
+ 
+			}
+			
+demandsToBeApportioned.add(demand);
+System.out.println(demandsToBeApportioned);
+
+
+// Write the modified value back to the serialized file
+writeToPropertiesFile(filePath1, "txamt", txamt);
+writeToPropertiesFile(filePath2, "cnt", cnt);writeToPropertiesFile(filePath3, "finals", finals);
 			DemandApportionRequest apportionRequest = DemandApportionRequest.builder().requestInfo(requestInfo).demands(demandsToBeApportioned).tenantId(tenantId).build();
 			try {
 				String apportionRequestStr = mapper.writeValueAsString(apportionRequest);
