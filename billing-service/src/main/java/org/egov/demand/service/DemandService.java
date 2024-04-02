@@ -408,6 +408,7 @@ public class DemandService {
 				demandToBeCreated.add(demand);
 				continue;
 			}
+			if (businessService.equalsIgnoreCase("WS") || businessService.equalsIgnoreCase("SW")) {
 			if (finalsadvance==0 && count ==0)
 			{
 				for (Demand d1 : demandsToBeApportioned) 
@@ -418,7 +419,7 @@ public class DemandService {
 			            if ("WS_ADVANCE_CARRYFORWARD".equals(d123.getTaxHeadMasterCode())) 
 			            {
 			            	finalsadvance = d123.getTaxAmount().intValue();
-			            	
+			            	ispaymentcompleted=true;
 
 			            }
 			           
@@ -461,7 +462,7 @@ public class DemandService {
 			        }
 			    }
 			}
-			
+			}
 			// The current demand is added to get apportioned
 			demandsToBeApportioned.add(demand);
 
