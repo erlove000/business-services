@@ -100,9 +100,9 @@ public class PaymentService {
 		}	
 		String receipt[]=receiptnumber.split("/");
      	String businessservice= receipt[0];
-     	if(businessservice.equals("WS")||businessservice.equals("SW")) {
+     	 /*if(businessservice.equals("WS")||businessservice.equals("SW")) {
             setPropertyData(receiptnumber,payments);
-        }
+        }*/
 	}
         return payments;
     }
