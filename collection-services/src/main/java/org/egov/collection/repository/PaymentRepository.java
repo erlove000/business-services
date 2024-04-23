@@ -377,11 +377,20 @@ public class PaymentRepository {
 			    consumercode =   iterate.next();			  
 		}		
 		Map<String, Object> preparedStatementValues = new HashMap<>();
-		String queryString = "select a2.usagecategory from eg_ws_connection a1 "
+		String queryString;
+		if (consumercode.contains("WS_AP")) {
+		    queryString = "select a2.usagecategory from eg_ws_connection a1 "
 				+ " inner join eg_pt_property a2 on a1.property_id = a2.propertyid "
 				+ " inner join eg_pt_address a3 on a2.id=a3.propertyid "
 				+ " where a1.applicationno='"+consumercode+"'";
 		log.info("Query for fetchPaymentIdsByCriteria: " +queryString);
+		} else {
+			queryString = "select a2.usagecategory from eg_sw_connection a1 "
+					+ " inner join eg_pt_property a2 on a1.property_id = a2.propertyid "
+					+ " inner join eg_pt_address a3 on a2.id=a3.propertyid "
+					+ " where a1.applicationno='"+consumercode+"'";
+			log.info("Query for fetchPaymentIdsByCriteria: " +queryString);
+		}
 		try {
 			res = namedParameterJdbcTemplate.query(queryString, preparedStatementValues, new SingleColumnRowMapper<>(String.class));
 		} catch (Exception ex) {
@@ -397,11 +406,21 @@ public class PaymentRepository {
 			    consumercode =   iterate.next();			  
 		}
 		Map<String, Object> preparedStatementValues = new HashMap<>();
-		String queryString = "select CONCAT(doorno,buildingname,city) as address from eg_ws_connection a1 "
+		String queryString;
+		if (consumercode.contains("WS_AP")) {
+		 queryString = "select CONCAT(doorno,buildingname,city) as address from eg_ws_connection a1 "
 				+ " inner join eg_pt_property a2 on a1.property_id = a2.propertyid "
 				+ " inner join eg_pt_address a3 on a2.id=a3.propertyid "
 				+ " where a1.applicationno='"+consumercode+"'";
 		log.info("Query for fetchAddressByApplicationno: " +queryString);
+		}
+		else {
+			 queryString = "select CONCAT(doorno,buildingname,city) as address from eg_sw_connection a1 "
+						+ " inner join eg_pt_property a2 on a1.property_id = a2.propertyid "
+						+ " inner join eg_pt_address a3 on a2.id=a3.propertyid "
+						+ " where a1.applicationno='"+consumercode+"'";
+				log.info("Query for fetchAddressByApplicationno: " +queryString);
+		}
 		try {
 			res = namedParameterJdbcTemplate.query(queryString, preparedStatementValues, new SingleColumnRowMapper<>(String.class));
 		} catch (Exception ex) {
