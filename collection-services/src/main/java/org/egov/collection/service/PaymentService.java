@@ -89,7 +89,9 @@ public class PaymentService {
 	if(paymentSearchCriteria.getBusinessService().equals("WS.ONE_TIME_FEE")|| paymentSearchCriteria.getBusinessService().equals("SW.ONE_TIME_FEE")) {  
         List<String> usageCategory = paymentRepository.fetchUsageCategoryByApplicationno(paymentSearchCriteria.getConsumerCodes());
         List<String> address = paymentRepository.fetchAddressByApplicationno(paymentSearchCriteria.getConsumerCodes());
-        payments.get(0).setUsageCategory(usageCategory.get(0));
+       System.out.println("usageCategory "+usageCategory+ " of "+ paymentSearchCriteria.getBusinessService());
+		System.out.println("address "+address+ " of "+ paymentSearchCriteria.getBusinessService());payments.get(0).setUsageCategory(usageCategory.get(0));
+		payments.get(0).setUsageCategory(usageCategory.get(0));
         payments.get(0).setAddress(address.get(0));
 	}  
 	}else if(null != paymentSearchCriteria.getReceiptNumbers()){
