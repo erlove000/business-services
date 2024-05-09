@@ -113,6 +113,9 @@ public class Payment {
 	
 	@JsonProperty("propertyDetail")
 	private HashMap<String, String> propertyDetail;
+
+	@JsonProperty("propertyid")
+        private String PropertyId = null;
     
     public Payment addpaymentDetailsItem(PaymentDetail paymentDetail) {
         if (this.paymentDetails == null) {
