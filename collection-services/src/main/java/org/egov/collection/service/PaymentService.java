@@ -100,10 +100,10 @@ public class PaymentService {
 		}	
 		String receipt[]=receiptnumber.split("/");
      	String businessservice= receipt[0];
-     	 if(businessservice.equals("WS")||businessservice.equals("SW")) {
-             setPropertyData(receiptnumber,payments);
-         }
-	if(businessservice.equals("WS")||businessservice.equals("SW") && payments.get(0).getAddress().isEmpty()) {
+     	 // if(businessservice.equals("WS")||businessservice.equals("SW")) {
+       //       setPropertyData(receiptnumber,payments);
+       //   }
+	if((businessservice.equals("WS")||businessservice.equals("SW") )|| payments.get(0).getAddress().isEmpty()) {
   	 List<String> usageCategory = paymentRepository.fetchUsageCategoryByApplicationnos(paymentSearchCriteria.getReceiptNumbers(),businessservice);
          List<String> address = paymentRepository.fetchAddressByApplicationnos(paymentSearchCriteria.getReceiptNumbers(),businessservice);
          List<String> propertyIds = paymentRepository.fetchPropertyid(paymentSearchCriteria.getReceiptNumbers(), businessservice);
